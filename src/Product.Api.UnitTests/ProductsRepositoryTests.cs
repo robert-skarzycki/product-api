@@ -27,10 +27,7 @@ namespace Product.Api.UnitTests
         {
             var sut = new ProductsRepository();
 
-            var productToRemove = new Model.Product
-            {
-                Id = 100
-            };
+            var productToRemove = sut.GetById(1);
 
             var result = sut.Remove(productToRemove);
 
