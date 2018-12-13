@@ -8,38 +8,52 @@ namespace Product.Api.App.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class ProductsController : ControllerBase
     {
-        // GET api/values
+        private List<Model.Product> _productsCollection = new List<Model.Product>(){
+new Model.Product{Id = 1, Name = "Great book", Price=99.99M},
+                new Model.Product{Id=2, Name = "Iphone", Price=45.50M}
+        };
+
+        // GET api/products
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public ActionResult<IEnumerable<Model.Product>> Get()
         {
-            return new string[] { "value1", "value2" };
+            return _productsCollection;
         }
 
-        // GET api/values/5
+        // GET api/products/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult<Model.Product> Get(int id)
         {
-            return "value";
+            return _productsCollection.FirstOrDefault(p => p.Id == id);
         }
 
-        // POST api/values
+        // POST api/products
         [HttpPost]
-        public void Post([FromBody] string value)
+        public void Post([FromBody] Model.Product product)
         {
+            var newId = _productsCollection.Select(p => p.Id).Max();
+            product.Id = newId;
+
+            _productsCollection.Add(product);
         }
 
-        // PUT api/values/5
+        // PUT api/products/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void Put(int id, [FromBody] Model.Product product)
         {
+            var productToUpdate = _productsCollection.FirstOrDefault(p => p.Id == id);
+            productToUpdate.UpdateWith(product);
         }
 
-        // DELETE api/values/5
+        // DELETE api/products/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+            var productToRemove = _productsCollection.FirstOrDefault(p => p.Id == id);
+
+            _productsCollection.Remove(productToRemove);
         }
     }
 }
