@@ -34,7 +34,7 @@ namespace Product.Api.App.Storage
 
         public bool Remove(Model.Product product)
         {
-            _productsCollection.Remove(product);
+            return _productsCollection.Remove(product);
         }
     }
 
