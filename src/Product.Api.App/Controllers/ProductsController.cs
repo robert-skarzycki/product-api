@@ -2,58 +2,86 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Product.Api.App.Storage;
 
 namespace Product.Api.App.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private List<Model.Product> _productsCollection = new List<Model.Product>(){
-new Model.Product{Id = 1, Name = "Great book", Price=99.99M},
-                new Model.Product{Id=2, Name = "Iphone", Price=45.50M}
-        };
+        private readonly IProductsRepository _repository;
+
+        public ProductsController(IProductsRepository repository)
+        {
+            this._repository = repository;
+        }
 
         // GET api/products
         [HttpGet]
         public ActionResult<IEnumerable<Model.Product>> Get()
         {
-            return _productsCollection;
+            return Ok(_repository.GetAll().ToList());
         }
 
         // GET api/products/5
         [HttpGet("{id}")]
         public ActionResult<Model.Product> Get(int id)
         {
-            return _productsCollection.FirstOrDefault(p => p.Id == id);
+            var product = _repository.GetById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(product);
+            }
         }
 
         // POST api/products
         [HttpPost]
-        public void Post([FromBody] Model.Product product)
+        public ActionResult Post([FromBody] Model.Product product)
         {
-            var newId = _productsCollection.Select(p => p.Id).Max();
-            product.Id = newId;
-
-            _productsCollection.Add(product);
+            var addedProduct = _repository.Add(product);
+            return Created($"/api/products/{addedProduct.Id}", addedProduct);
         }
 
         // PUT api/products/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Model.Product product)
+        public ActionResult Put(int id, [FromBody] Model.Product product)
         {
-            var productToUpdate = _productsCollection.FirstOrDefault(p => p.Id == id);
+            var productToUpdate = _repository.GetById(id);
+            if (productToUpdate == null)
+            {
+                return NotFound();
+            }
             productToUpdate.UpdateWith(product);
+
+            return Ok(productToUpdate);
         }
 
         // DELETE api/products/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public ActionResult Delete(int id)
         {
-            var productToRemove = _productsCollection.FirstOrDefault(p => p.Id == id);
+            var productToRemove = _repository.GetById(id);
+            if (productToRemove == null)
+            {
+                return NotFound();
+            }
 
-            _productsCollection.Remove(productToRemove);
+            var wasProductRemoved = _repository.Remove(productToRemove);
+            if (wasProductRemoved)
+            {
+                return Ok(productToRemove);
+            }
+            else
+            {
+                return new StatusCodeResult(StatusCodes.Status410Gone);
+            }
         }
     }
 }
